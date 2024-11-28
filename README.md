@@ -17,4 +17,4 @@ This is a full-stack Todo App project with the following structure:
 ## License
 This project is open-source under the MIT License.
 -
-<img src= "https://pa1.narvii.com/6580/8098c6e9207376889eeb0532d9f5a0723c4d73f5_hq.gif"/>
+<img src= "https://user-images.githubusercontent.com/74038190/212281763-e6ecd7ef-c4aa-45b6-a97c-f33f6bb592bd.gif"/>
