@@ -1,6 +1,6 @@
 const products = [
-    { id: 1, name: "Laptop", price: 999 },
-    { id: 2, name: "Phone", price: 499 },
+    { id: 1, name: "Laptop", price: 999, description: "This is a very nice laptop." },
+    { id: 2, name: "Phone", price: 499, description: "This is a mint condition phone." },
   ];
   
   // Get all products
@@ -41,6 +41,7 @@ const products = [
       id: products.length + 1,
       name,
       price,
+      description: req.body.description,
     };
   
     products.push(newProduct);
