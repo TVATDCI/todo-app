@@ -15,3 +15,7 @@ build/
 # OS-specific files
 .DS_Store
 Thumbs.db
+
+#development doc
+
+refactor-plan-v1_2.md
