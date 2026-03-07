@@ -149,47 +149,47 @@ Rewrite controllers (all use `apiResponse.js`, `asyncHandler`, Zod validation, a
 
 ---
 
-## Phase 2 — Client Refactor
+## Phase 2 — Client Refactor ✅ COMPLETED
 
-### Step 8 — Migrate CRA → Vite
+### Step 8 — Migrate CRA → Vite ✅
 
-- [ ] Scaffold Vite + React into `client/`
-- [ ] Move existing `src/` files across; update `index.html` (title, meta description, favicon)
-- [ ] Configure `vite.config.js` with a dev proxy to `http://localhost:5001`
-- [ ] Remove CRA-specific files (`reportWebVitals.js`, CRA test setup)
+- [x] Scaffold Vite + React into `client/`
+- [x] Move existing `src/` files across; update `index.html` (title, meta description, favicon)
+- [x] Configure `vite.config.js` with a dev proxy to `http://localhost:5001`
+- [x] Remove CRA-specific files (`reportWebVitals.js`, CRA test setup)
 
-### Step 9 — Centralize the API layer with interceptors and toast notifications
+### Step 9 — Centralize the API layer with interceptors and toast notifications ✅
 
 Add `sonner` to client dependencies.
 
 Replace all scattered `axios` calls with a single module structure:
 
-- [ ] `client/src/api/client.js` — one `axios.create` instance using `import.meta.env.VITE_API_URL`; add a **response interceptor** that catches 4xx/5xx globally and fires `toast.error(message)` via Sonner — individual components no longer need their own error handling for network failures
-- [ ] Rewrite `api/tasksApi.js` — use shared instance; full CRUD
-- [ ] Create `api/usersApi.js` — full CRUD, pointing to the unified port 5001 server
-- [ ] Create `api/productsApi.js` — full CRUD
-- [ ] Add `<Toaster />` from Sonner to `App.jsx` root so toast notifications render app-wide
+- [x] `client/src/api/client.js` — one `axios.create` instance using `import.meta.env.VITE_API_URL`; add a **response interceptor** that catches 4xx/5xx globally and fires `toast.error(message)` via Sonner — individual components no longer need their own error handling for network failures
+- [x] Rewrite `api/tasksApi.js` — use shared instance; full CRUD
+- [x] Create `api/usersApi.js` — full CRUD, pointing to the unified port 5001 server
+- [x] Create `api/productsApi.js` — full CRUD
+- [x] Add `<Toaster />` from Sonner to `App.jsx` root so toast notifications render app-wide
 
-### Step 10 — Add React Router
+### Step 10 — Add React Router ✅
 
-- [ ] Install `react-router-dom` v6
-- [ ] Set up routes in `App.js`: `/tasks`, `/users`, `/products` (+ redirect from `/`)
-- [ ] Create `pages/TasksPage.jsx`, `pages/UsersPage.jsx`, `pages/ProductsPage.jsx`
-- [ ] Add a `components/Navbar.jsx`
+- [x] Install `react-router-dom` v6
+- [x] Set up routes in `App.jsx`: `/tasks`, `/users`, `/products` (+ redirect from `/`)
+- [x] Create `pages/TasksPage.jsx`, `pages/UsersPage.jsx`, `pages/ProductsPage.jsx`
+- [x] Add a `components/Navbar.jsx`
 
-### Step 11 — Rebuild components with full CRUD UI
+### Step 11 — Rebuild components with full CRUD UI ✅
 
-- [ ] `TaskList.jsx` — remove self-fetching; accept data as props or via custom hook; add Complete checkbox, Delete button, loading and empty states
-- [ ] `AddTask.jsx` — wrap in `<form>`, add Enter-key submit, loading/disabled state, user-visible error message
-- [ ] Create `useTasks.js` custom hook — owns fetch, add, toggle, delete logic; keeps components presentation-only
-- [ ] Rebuild `AddUser.jsx` — points to port 5001; add a `UserList.jsx`
-- [ ] Rebuild `AddProduct.jsx` — use `productsApi.js`; add `description` field, price validation; add `ProductList.jsx`
-- [ ] Add loading indicators and inline error messages in all forms
+- [x] `TaskList.jsx` — remove self-fetching; accept data as props or via custom hook; add Complete checkbox, Delete button, loading and empty states
+- [x] `AddTask.jsx` — wrap in `<form>`, add Enter-key submit, loading/disabled state, user-visible error message
+- [x] Create `useTasks.js` custom hook — owns fetch, add, toggle, delete logic; keeps components presentation-only
+- [x] Rebuild `AddUser.jsx` — points to port 5001; add a `UserList.jsx`
+- [x] Rebuild `AddProduct.jsx` — use `productsApi.js`; add `description` field, price validation; add `ProductList.jsx`
+- [x] Add loading indicators and inline error messages in all forms
 
-### Step 12 — Client environment variables
+### Step 12 — Client environment variables ✅
 
-- [ ] Create `client/.env`: `VITE_API_URL=http://localhost:5001`
-- [ ] Create `client/.env.example`
+- [x] Create `client/.env`: `VITE_API_URL=http://localhost:5001`
+- [x] Create `client/.env.example`
 
 ---
 
@@ -204,17 +204,17 @@ Replace all scattered `axios` calls with a single module structure:
 - [x] Every async controller is wrapped in `asyncHandler`
 - [x] `helmet` headers are present on all responses
 
-### Client
+### Client ✅ VERIFIED
 
-- [ ] `npm run dev` starts on Vite dev server (port 5173); proxy forwards API calls correctly
-- [ ] Adding a task persists after page refresh (MongoDB)
-- [ ] Complete-toggle and delete work in the UI for tasks
-- [ ] Users are listed after adding (no `window.location.reload()` anywhere)
-- [ ] Products support add, list, and delete
-- [ ] No hardcoded `localhost` URLs anywhere in source
-- [ ] All forms show loading state and user-visible errors on failure
-- [ ] Axios interceptor fires a Sonner toast on any 4xx/5xx response
-- [ ] All success responses from the server match the `{ success, data, message }` shape
+- [x] `npm run dev` starts on Vite dev server (port 5173); proxy forwards API calls correctly
+- [x] Adding a task persists after page refresh (MongoDB)
+- [x] Complete-toggle and delete work in the UI for tasks
+- [x] Users are listed after adding (no `window.location.reload()` anywhere)
+- [x] Products support add, list, and delete
+- [x] No hardcoded `localhost` URLs anywhere in source
+- [x] All forms show loading state and user-visible errors on failure
+- [x] Axios interceptor fires a Sonner toast on any 4xx/5xx response
+- [x] All success responses from the server match the `{ success, data, message }` shape
 
 ---
 
