@@ -1,52 +1,104 @@
-// Sample user data
-const users = [
-  { id: 1, name: "Jane Austen", status: "I find myself in tolerable health." },
-  { id: 2, name: "John Doe", status: "Learning backend development." },
-];
+import User from "../models/User.js";
+import { sendSuccess, sendError } from "../utils/apiResponse.js";
+import asyncHandler from "../middleware/asyncHandler.js";
+import { z } from "zod";
 
-// GET all users
-export const getAllUsers = (req, res, next) => {
-  try {
-    res.json(users);
-  } catch (error) {
-    next(error); // Pass error to errorHandler middleware
+// Zod validation schema for creating a user
+const createUserSchema = z.object({
+  name: z
+    .string()
+    .min(1, "User name is required")
+    .max(50, "Name cannot exceed 50 characters"),
+  email: z.string().email("Invalid email format"),
+  status: z
+    .enum(["active", "inactive", "pending"])
+    .optional()
+    .default("active"),
+});
+
+// Zod validation schema for updating a user
+const updateUserSchema = z.object({
+  name: z.string().min(1).max(50).optional(),
+  email: z.string().email().optional(),
+  status: z.enum(["active", "inactive", "pending"]).optional(),
+});
+
+/**
+ * Get all users
+ * @route GET /api/users
+ */
+export const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.find().lean();
+  return sendSuccess(res, users, "Users retrieved successfully");
+});
+
+/**
+ * Get a single user by ID
+ * @route GET /api/users/:id
+ */
+export const getUserById = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id).lean();
+
+  if (!user) {
+    return sendError(res, "User not found", 404);
   }
-};
 
-// GET user by ID
-export const getUserById = (req, res, next) => {
-  try {
-    const user = users.find((u) => u.id === parseInt(req.params.id));
-    if (!user) {
-      const error = new Error("User not found.");
-      error.statusCode = 404;
-      throw error;
+  return sendSuccess(res, user, "User retrieved successfully");
+});
+
+/**
+ * Create a new user
+ * @route POST /api/users
+ */
+export const createUser = asyncHandler(async (req, res) => {
+  // Validate request body
+  const validatedData = createUserSchema.parse(req.body);
+
+  const user = await User.create(validatedData);
+  return sendSuccess(res, user, "User created successfully", 201);
+});
+
+/**
+ * Update a user
+ * @route PUT /api/users/:id
+ */
+export const updateUser = asyncHandler(async (req, res) => {
+  // Validate request body
+  const validatedData = updateUserSchema.parse(req.body);
+
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return sendError(res, "User not found", 404);
+  }
+
+  // Check if email is being changed and if it's already in use
+  if (validatedData.email && validatedData.email !== user.email) {
+    const existingUser = await User.findOne({ email: validatedData.email });
+    if (existingUser) {
+      return sendError(res, "Email already in use", 400);
     }
-    res.json(user);
-  } catch (error) {
-    next(error);
   }
-};
 
-// POST create a new user
-export const createUser = (req, res, next) => {
-  try {
-    const { id, name, status } = req.body;
-    if (!id || !name || !status) {
-      const error = new Error("Please provide id, name, and status.");
-      error.statusCode = 400;
-      throw error;
-    }
+  // Update fields
+  Object.assign(user, validatedData);
+  await user.save();
 
-    // Simulate adding a user (no database here, just for example)
-    const newUser = { id, name, status };
-    users.push(newUser);
+  return sendSuccess(res, user, "User updated successfully");
+});
 
-    res.status(201).json({
-      message: "User created successfully.",
-      user: newUser,
-    });
-  } catch (error) {
-    next(error);
+/**
+ * Delete a user
+ * @route DELETE /api/users/:id
+ */
+export const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return sendError(res, "User not found", 404);
   }
-};
+
+  await user.deleteOne();
+
+  return sendSuccess(res, null, "User deleted successfully");
+});
