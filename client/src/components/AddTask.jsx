@@ -1,33 +1,58 @@
-// src/components/AddTask.jsx
-import React, { useState } from "react";
-import { createTask } from "../api/tasksApi";
+import { useState } from "react";
 
-const AddTask = ({ onTaskAdded }) => {
-  const [newTask, setNewTask] = useState("");
+export default function AddTask({ onTaskAdded }) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleAddTask = async () => {
-    if (!newTask.trim()) return;
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    setLoading(true);
+    setError(null);
     try {
-      const addedTask = await createTask(newTask);
-      onTaskAdded(addedTask); // Notify parent component of new task
-      setNewTask(""); // Clear input
-    } catch (error) {
-      console.error("Error adding task:", error);
+      await onTaskAdded({ title: title.trim(), description, category });
+      setTitle("");
+      setDescription("");
+      setCategory("");
+    } catch {
+      setError("Failed to add task. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h2>Add Task</h2>
       <input
         type="text"
-        placeholder="Enter a new task"
-        value={newTask}
-        onChange={(e) => setNewTask(e.target.value)}
+        placeholder="Task title *"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        required
+        disabled={loading}
       />
-      <button onClick={handleAddTask}>Add Task</button>
-    </div>
+      <input
+        type="text"
+        placeholder="Description (optional)"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        disabled={loading}
+      />
+      <input
+        type="text"
+        placeholder="Category (optional)"
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        disabled={loading}
+      />
+      {error && <p className="error-text">{error}</p>}
+      <button type="submit" disabled={loading || !title.trim()}>
+        {loading ? "Adding…" : "Add Task"}
+      </button>
+    </form>
   );
-};
-
-export default AddTask;
+}
