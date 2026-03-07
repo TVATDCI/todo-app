@@ -1,36 +1,43 @@
-// src/components/TaskList.jsx
-import React, { useEffect, useState } from "react";
-import { fetchTasks } from "../api/tasksApi";
-
-const TaskList = () => {
-  const [tasks, setTasks] = useState([]);
-
-  useEffect(() => {
-    const loadTasks = async () => {
-      try {
-        const data = await fetchTasks();
-        setTasks(data);
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-      }
-    };
-
-    loadTasks();
-  }, []);
+export default function TaskList({
+  tasks,
+  loading,
+  error,
+  onToggle,
+  onDelete,
+}) {
+  if (loading) return <p className="status-text">Loading tasks…</p>;
+  if (error) return <p className="error-text">{error}</p>;
+  if (!tasks.length)
+    return <p className="status-text">No tasks yet. Add one above!</p>;
 
   return (
-    <div>
-      <h2>Task List</h2>
-      <ul className="taskUi">
-        {tasks.map((task) => (
-          <li className="taskLi" key={task.id}>
-            {task.title} {task.category} {task.description}{" "}
-            {task.completed ? "(Completed)" : "(Pending)"}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <ul className="task-list">
+      {tasks.map((task) => (
+        <li
+          key={task._id}
+          className={`task-item${task.completed ? " completed" : ""}`}
+        >
+          <label className="task-check">
+            <input
+              type="checkbox"
+              checked={task.completed}
+              onChange={() => onToggle(task._id)}
+            />
+            <span className="task-title">{task.title}</span>
+          </label>
+          {task.category && <span className="task-badge">{task.category}</span>}
+          {task.description && (
+            <span className="task-desc">{task.description}</span>
+          )}
+          <button
+            className="btn-delete"
+            onClick={() => onDelete(task._id)}
+            aria-label="Delete task"
+          >
+            ✕
+          </button>
+        </li>
+      ))}
+    </ul>
   );
-};
-
-export default TaskList;
+}
