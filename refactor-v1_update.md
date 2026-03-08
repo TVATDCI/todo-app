@@ -344,3 +344,95 @@ docker-compose.yml
 ---
 
 _Plan authored: March 2026. Implementation will proceed one side at a time — server first, then client._
+
+---
+
+## Post-launch Audit — Bugs & Cleanup (March 8, 2026)
+
+After both phases were marked verified, a second full audit was performed against the running codebase.
+Seven issues were found and fixed in one session.
+
+### Issues Found & Fixed
+
+#### 1 — Leftover CRA files not deleted (`client/src/`)
+
+**Problem:** Step 8 required removing CRA-specific files, but five files were never deleted. They were dead weight with no import path — `index.js` still referenced `reportWebVitals` and rendered via the old CRA `ReactDOM.createRoot` call. Any future developer opening the repo would see two `index` files and two `App` files and be confused.
+
+**Files deleted:**
+
+- `client/src/App.js` — stub file kept "for git history", not imported by anything
+- `client/src/index.js` — original CRA entry point, superseded by `main.jsx`
+- `client/src/reportWebVitals.js` — CRA performance utility, unused in Vite
+- `client/src/setupTests.js` — CRA Jest setup, no test runner installed
+- `client/src/logo.svg` — default CRA logo asset, never referenced
+
+---
+
+#### 2 — `client/.env` was missing
+
+**Problem:** `client/.env` was listed as created in Step 12 (`VITE_API_URL=http://localhost:5001`) but the file did not exist on disk. As a result, `import.meta.env.VITE_API_URL` resolved to `undefined` at runtime. Axios `baseURL` was `undefined`, so API calls worked only accidentally in dev because Vite's proxy intercepted relative `/api/…` paths. This would silently break in any production build.
+
+**Fix:** Created `client/.env` with `VITE_API_URL=http://localhost:5001`.
+
+---
+
+#### 3 — `server/.env.example` was missing
+
+**Problem:** Step 3 required creating `server/.env.example` as a committed template. The file was not present in the repo, meaning anyone cloning the repository had no reference for which environment variables are required or what format they take.
+
+**Fix:** Created `server/.env.example` with documented fields: `PORT`, `NODE_ENV`, `MONGO_URI` (with both local and Atlas examples), and `CLIENT_ORIGIN`. Includes a note that `npm run seed` targets the database defined by `MONGO_URI`.
+
+---
+
+#### 4 — `.gitignore` silently excluded `.env.example` files
+
+**Problem:** The root `.gitignore` contained `.env.*`, which is a glob that matches `.env.example`. This meant `server/.env.example` (and any other `.env.example`) would never be committed to the repository — exactly the opposite of the intention. The templates would be invisible on GitHub.
+
+**Files modified:** `.gitignore`
+
+**Fix:** Added two negation rules immediately after the `.env.*` pattern:
+
+```
+!.env.example
+!**/.env.example
+```
+
+---
+
+#### 5 — `client/.env.example` comment was misleading
+
+**Problem:** The existing comment said "in dev the Vite proxy forwards /api requests to this server", implying the proxy is always used. In reality, the proxy only activates when `VITE_API_URL` is empty (so axios uses relative paths). With `VITE_API_URL` set, axios sends requests directly to the server — the proxy is bypassed entirely.
+
+**Files modified:** `client/.env.example`
+
+**Fix:** Rewrote the comment to document both options clearly:
+
+- **Option A (direct):** Set `VITE_API_URL` to the full server URL; axios sends directly; CORS must be configured.
+- **Option B (proxy):** Leave `VITE_API_URL` empty; Vite proxy forwards `/api/…` requests; no CORS needed in dev.
+
+---
+
+#### 6 — `@types/react` / `@types/react-dom` versions mismatched React 19
+
+**Problem:** `client/package.json` declared `@types/react: ^18.3.1` and `@types/react-dom: ^18.3.1`, but the installed React version is **19**. React 19 ships its own updated type definitions. The v18 types are incomplete for React 19 APIs and would produce incorrect TypeScript/IDE feedback.
+
+**Files modified:** `client/package.json`, `client/package-lock.json`
+
+**Fix:** Updated both dev dependencies to `^19.0.0` and reinstalled. Installed version: `19.2.14`.
+
+---
+
+#### 7 — Mongoose `__v` version key leaked into all API responses
+
+**Problem:** All three Mongoose schemas were missing `versionKey: false`. By default, Mongoose adds a `__v` field (internal document version counter used for optimistic concurrency) to every saved document. This field appeared in every API response body (`__v: 0`), polluting the JSON contract with an internal Mongoose implementation detail that the client has no use for.
+
+**Files modified:** `server/src/models/Task.js`, `server/src/models/User.js`, `server/src/models/Product.js`
+
+**Fix:** Added `versionKey: false` to the schema options object of all three models:
+
+```js
+{
+  timestamps: true,
+  versionKey: false,
+}
+```
